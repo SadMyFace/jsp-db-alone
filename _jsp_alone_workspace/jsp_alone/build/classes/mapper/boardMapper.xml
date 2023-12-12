@@ -27,7 +27,7 @@
   	</select>
   	
   	<update id="up" parameterType="bvo">
-  		update board set title = #{title}, content = #{content}, moddate = now() 
+  		update board set title = #{title}, content = #{content}, imageFile = #{imageFile}, moddate = now() 
   			where bno = #{bno}
   	</update>
   	
@@ -37,6 +37,10 @@
   	
   	<select id="getCount" parameterType="pgvo" resultType="int">
   		select count(bno) from board <include refid="search"></include>
+  	</select>
+  	
+  	<select id="findFile" parameterType="int" resultType="string">
+  		select imageFile from board where bno = #{bno}
   	</select>
   	
   	<sql id="search">

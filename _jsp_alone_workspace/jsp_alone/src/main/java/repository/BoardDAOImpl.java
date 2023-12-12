@@ -91,6 +91,13 @@ public class BoardDAOImpl implements BoardDAO {
 		log.info(">>> totalCount check 3");
 		return sql.selectOne("BoardMapper.getCount", pgvo);
 	}
+
+	@Override
+	public String findFile(int bno) {
+		// TODO Auto-generated method stub
+		log.info("remove check 3");
+		return sql.selectOne("BoardMapper.findFile", bno);
+	}
 	
 }
 

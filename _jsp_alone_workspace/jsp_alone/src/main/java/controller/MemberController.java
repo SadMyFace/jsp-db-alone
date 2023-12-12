@@ -99,6 +99,7 @@ public class MemberController extends HttpServlet {
 				// TODO: handle exception
 				log.info("logout error");
 			}
+			break;
 		case "detail" : 
 			destPage = "/member/detail.jsp";
 			break;

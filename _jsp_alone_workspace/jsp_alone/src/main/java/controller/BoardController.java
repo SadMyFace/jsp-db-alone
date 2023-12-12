@@ -19,10 +19,13 @@ import org.slf4j.LoggerFactory;
 
 import domain.BoardVO;
 import domain.PagingVO;
+import handler.FileRemoveHandler;
 import handler.PagingHandler;
 import net.coobird.thumbnailator.Thumbnails;
 import service.BoardService;
 import service.BoardServiceImpl;
+import service.CommentService;
+import service.CommentServiceImpl;
 
 /**
  * Servlet implementation class BoardController
@@ -41,6 +44,7 @@ public class BoardController extends HttpServlet {
 	
 	// controller <-> service
 	private BoardService bsv; // interface로 생성
+	private CommentService csv;
 	
 	
 	
@@ -220,7 +224,21 @@ public class BoardController extends HttpServlet {
 				//파라미터로 받은 bno, title, content 데이터를
 				//DB에 수정하여 넣고, list로 이동
 				int bno = Integer.parseInt(request.getParameter("bno"));
+				savePath = getServletContext().getRealPath("/_fileUpload");
+				
 				log.info("remove check 1");
+				String file_name = bsv.fineFile(bno);
+				log.info("filename: " + file_name);
+				if(file_name.length() > 0) {
+					FileRemoveHandler fh = new FileRemoveHandler();
+					fh.deleteFile(file_name, savePath);
+				}
+				
+				csv = new CommentServiceImpl();
+				log.info("comment remove check 1");
+				isOk = csv.removeCommet(bno);
+				log.info("comment remove >>> {} ", isOk > 0 ? "OK" : "Fail");
+				
 				isOk = bsv.remove(bno);
 				log.info("remove >>> {} ", isOk > 0 ? "OK" : "Fail");
 				
@@ -233,13 +251,80 @@ public class BoardController extends HttpServlet {
 			break;
 		case "edit" : 
 			try {
-				int bno = Integer.parseInt(request.getParameter("bno"));
-				String title = request.getParameter("title");;
-				String content = request.getParameter("content");
+				savePath = getServletContext().getRealPath("/_fileUpload");
+				File fileDir = new File(savePath);
 				
-				BoardVO bvo = new BoardVO(bno, title, content);
-				log.info("edit check 1");
-				log.info("edit >>> {} " + bvo);
+				DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
+				fileItemFactory.setRepository(fileDir);
+				fileItemFactory.setSizeThreshold(1024 * 1024 * 3);
+				
+				BoardVO bvo = new BoardVO();
+				
+				ServletFileUpload fileUpload = new ServletFileUpload(fileItemFactory);
+				
+				List<FileItem> itemList = fileUpload.parseRequest(request);
+				
+				String old_file = null;
+				
+				for(FileItem item : itemList) {
+					switch(item.getFieldName()) {
+					case "bno" : 
+						bvo.setBno(Integer.parseInt(item.getString("utf-8")));
+						break;
+					case "title" : 
+						bvo.setTitle(item.getString("utf-8"));
+						break;
+					case "content" : 
+						bvo.setContent(item.getString("utf-8"));
+						break;
+					case "image_file" : 
+						old_file = item.getString("utf-8");
+						break;
+					case "new_file" : 
+						if(item.getSize() > 0) {
+							if(old_file != null) {
+								FileRemoveHandler fh = new FileRemoveHandler();
+								isOk = fh.deleteFile(old_file, savePath);
+								log.info(">>> old_file Delete >>> {} " + ((isOk > 0) ? "OK" : "Fail"));
+							}
+							
+							
+							String fileName = item
+									.getName()
+									.substring(item.getName().lastIndexOf(File.separator) + 1);
+							log.info(">>> new file name >>> {} " + fileName);
+							
+							fileName = System.currentTimeMillis() + "_" + fileName;
+							File uploadFilePath = new File(fileDir + File.separator + fileName);
+							
+							try {
+								item.write(uploadFilePath);
+								bvo.setImageFile(fileName);
+								
+								Thumbnails.of(uploadFilePath)
+								.size(75, 75)
+								.toFile(new File(fileDir + File.separator + "_th_" + fileName));
+							} catch (Exception e) {
+								// TODO: handle exception
+								log.info("File Update Error");
+							}
+							
+						}else {
+							bvo.setImageFile(old_file);
+						}
+						
+						
+						break;
+					}
+				}
+				
+//				int bno = Integer.parseInt(request.getParameter("bno"));
+//				String title = request.getParameter("title");;
+//				String content = request.getParameter("content");
+//				
+//				BoardVO bvo = new BoardVO(bno, title, content);
+//				log.info("edit check 1");
+//				log.info("edit >>> {} " + bvo);
 				
 				isOk = bsv.modify(bvo);
 				log.info("edit >> {} ", isOk > 0 ? "OK" : "Fail");

@@ -20,4 +20,8 @@
   	<update id="modify" parameterType="cvo">
   		update comment set content = #{content} where cno = #{cno}
   	</update>
+  	
+  	<delete id="removeComment" parameterType="int">
+  		delete from comment where bno = #{bno}
+  	</delete>
   </mapper>

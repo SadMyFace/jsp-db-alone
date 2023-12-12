@@ -21,14 +21,14 @@ function spreadCommentList(result) {
   let writer = document.getElementById('cmtWriter').value;
   console.log(writer);
   for (let i = 0; i < result.length; i++) {
-    let html = `<div>`;
+    let html = `<div class="d-inline">`;
     html += `<div>${result[i].cno}, ${result[i].bno}, ${result[i].writer}, ${result[i].regdate}</div>`;
     html += `<div>`;
     html += `<input type="text" value="${result[i].content}" class="cmtText">`;
 
     if (writer == result[i].writer) {
-      html += `<button type="button" data-cno="${result[i].cno}" class="cmtModBtn">수정</button>`;
-      html += `<button type="button" data-cno="${result[i].cno}" class="cmtDelBtn">삭제</button> <br>`;
+      html += `<button type="button" data-cno="${result[i].cno}" class="cmtModBtn btn btn-primary btn-sm">수정</button>`;
+      html += `<button type="button" data-cno="${result[i].cno}" class="cmtDelBtn btn btn-primary btn-sm">삭제</button> <br>`;
     }
 
     html += `</div></div><br><hr>`;
